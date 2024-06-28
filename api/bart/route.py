@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 import os
 import requests
 import sqlite3
-import utils
 
 def get_routes():
     load_dotenv()
@@ -18,13 +17,15 @@ def get_routes():
 
     insert = '''
             INSERT OR IGNORE INTO route VALUES 
-            (?, ?, ?, ?, ?, ?, ?, ?)
+            (?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
 
     for route in routes['root']['routes']['route']:
+        name = parse_name(route['name'])
         cur.execute(insert, (
-            int(utils.parse_date(date) + utils.standardize_num(int(route['number']))),
-            route['name'],
+            int(parse_date(date) + standardize_num(int(route['number']))),
+            name[0],
+            name[1],
             route['abbr'],
             int(route['number']),
             route['hexcolor'],
@@ -36,3 +37,19 @@ def get_routes():
     conn.commit()
     conn.close()
 
+def parse_name(name):
+    name = name.split(' to ')
+    if len(name) > 2:
+        raise Exception('Route name parsing error')
+    return name
+    
+def parse_date(date):
+    date = date.split('/')
+    parsed = date[0] + date[1] + date[2]
+    return parsed
+
+def standardize_num(num):
+    if num < 10:
+        return f'0{num}'
+    else:
+         return str(num)
